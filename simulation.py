@@ -1,54 +1,53 @@
 #!/usr/bin/env python3
 
-
 import threading
 import time
 
 try:
     import pyray as rl
+
 except ImportError as e:
     print(e)
-    print("Please install `raylib` using pip!")
+    print("Please install `raylib` using pip! (`pip install raylib`)")
     exit(1)
 
 
 class Vec3i:
+    """
+    3D Integer vector class
+    """
     def __init__(self, x: int, y: int, z: int):
         self.x = int(x)
         self.y = int(y)
         self.z = int(z)
 
     def __repr__(self):
-        return f"[x: {self.x}, y: {self.y}, z: {self.z}]"
-
-    def __floordiv__(self, divider):
-        return Vec3i(self.x // divider, self.y // divider, self.z // divider)
-
-    def abs(self):
-        return Vec3i(abs(self.x), abs(self.y), abs(self.z))
-
-    def bounds(self, other) -> bool:
-        if (other.x >= self.x
-            and other.y >= self.y
-            and other.z >= self.z):
-            return True
-
-        return False
+        return (f"{self.__class__.__name__}"
+                f"[x: {self.x}, y: {self.y}, z: {self.z}]")
 
 
-# adapted from https://en.wikipedia.org/wiki/Smoothstep
-def clamp(x: float, lowerlimit: float=0.0, upperlimit: float=1.0):
-    return (lowerlimit if x < lowerlimit 
-            else (upperlimit if x > upperlimit 
-            else x))
+class Position(Vec3i):
+    """
+    A position in the 3D space of the warehouse.
+    """
+    ...
+
+class Size(Vec3i):
+    """
+    A 3D size.
+    """
+    ...
+
+def clamp(x: float, lower_limit: float=0.0, upper_limit: float=1.0):
+    return min(max(x, lower_limit), upper_limit)
 
 # adapted from: https://en.wikipedia.org/wiki/Smoothstep
 def smoothstep(edge0: float, edge1: float, x: float):
     x = clamp((x - edge0) / (edge1 - edge0))
-    return (x ** 2) * (3 - 2 * x) # 3x^2 + 2x^3
+    return (3 - 2 * x) * (x ** 2)   # 3x^2 - 2x^3
 
 class CraneCmd:
-    def __init__(self, cmd: str, *args, **kwargs):
+    def __init__(self, cmd: str, **kwargs):
         if not cmd.isalpha():
             raise TypeError("cmd should be one of the following strings:\n"
                             "    ATTACH\n"
@@ -80,12 +79,12 @@ class CraneCmd:
                 if not "position" in kwargs:
                     raise IndexError("move command needs a keyword argument "
                                      "`position`\nFor example:\n"
-                                     "crane_cmd(\"MOVE\", position=Vec3i(0,0,0)")
+                                     "crane_cmd(\"MOVE\", position=Position(0,0,0)")
     
-                if type(kwargs["position"]) != Vec3i:
+                if type(kwargs["position"]) != Position:
                     raise IndexError("move command position has to be of type "
-                                     "`Vec3i`\nFor example:\n"
-                                     "crane_cmd(\"MOVE\", position=Vec3i(0,0,0)")
+                                     "`Position`\nFor example:\n"
+                                     "crane_cmd(\"MOVE\", position=Position(0,0,0)")
     
                 self.cmd = 'M' 
                 self.position = kwargs["position"]
@@ -108,8 +107,8 @@ class CraneCmd:
                 return f"CraneCmd: DETACH"
 
 
-class CraneControler:
-    def __init__(self, warehouse_size: Vec3i):
+class CraneController:
+    def __init__(self, warehouse_size: Size):
         self.cmd_lock = threading.Lock()
         self.cmd_list: list[tuple[CraneCmd, int, int]] = []
         self.speed = [1, 1, 1]
@@ -123,8 +122,8 @@ class CraneControler:
         self._inactive_simulation = threading.Event()
         self._inactive_simulation.set()
         self._start_time: int = 0
-        self._engine_thread = threading.Thread(target=CraneControler._engine_run, 
-                                               args=(self,), 
+        self._engine_thread = threading.Thread(target=CraneController._engine_run,
+                                               args=(self,),
                                                kwargs={})
 
     def __enter__(self):
@@ -153,11 +152,10 @@ class CraneControler:
         self.pole_size: float = 0.25
         self.pole_distance_multiplier: float = 0.5
 
-        self.crane_starting_pos = Vec3i(0, 0, 0)
+        self.crane_starting_pos = Position(0, 0, 0)
 
         rl.disable_cursor()
 
-        current_cmd = None
         current_pos = rl.Vector3(self.crane_starting_pos.x,
                                  self.crane_starting_pos.y,
                                  self.crane_starting_pos.z)
@@ -286,14 +284,14 @@ class CraneControler:
         for x in range(0, 2):
             for z in range(-1, 2, 2):
                 pos = rl.Vector3(
-                    x * (self.plane.x),
+                    x * self.plane.x,
                     self.plane.y / 2,
-                    (position.z) + z * self.pole_distance_multiplier + 0.5,
+                    position.z + z * self.pole_distance_multiplier + 0.5,
                 )
                 size = rl.Vector3(self.pole_size, self.plane.y, self.pole_size)
                 rl.draw_cube_v(pos, size, rl.YELLOW)
 
-                pos.x = 0.5 * (self.plane.x)
+                pos.x = 0.5 * self.plane.x
                 pos.y = self.plane.y + self.pole_size / 2
                 size.x = self.plane.x + self.pole_size
                 size.y = self.pole_size
@@ -333,15 +331,15 @@ class CraneControler:
             rl.draw_cube_wires_v(pos, size, rl.RED)
 
 
-    def check_coords(self, coords: Vec3i) -> None:
+    def check_coords(self, coords: Position) -> None:
         if coords.x + 1 >= self.plane.x:
-            raise ValueError("invalid x dimention")
+            raise ValueError("invalid x dimension")
         if coords.y + 1 >= self.plane.y:
-            raise ValueError("invalid y dimention")
+            raise ValueError("invalid y dimension")
         if coords.z >= self.plane.z:
-            raise ValueError("invalid x dimention")
+            raise ValueError("invalid x dimension")
 
-    def _detach_container(self, pos: Vec3i) -> bool:
+    def _detach_container(self, pos: Position) -> bool:
         if self.containers[pos.x][pos.z] != pos.y:
             return False
 
@@ -349,7 +347,7 @@ class CraneControler:
         self.attached_container = False
         return True
 
-    def _attach_container(self, pos: Vec3i) -> bool:
+    def _attach_container(self, pos: Position) -> bool:
         if self.containers[pos.x][pos.z] - 1 != pos.y:
             return False
 
@@ -359,14 +357,6 @@ class CraneControler:
 
 
     def append_cmds(self, *args):
-        """
-        push instructions to the instruction stack
-        this instruction stack will be read by the engine after
-        `start_execution` has been called
-
-        The time duration will of these commands will be handled 
-        in this function
-        """
         with self.cmd_lock:
             for arg in args:
                 t_start = 0
@@ -376,7 +366,7 @@ class CraneControler:
                 if type(arg) != CraneCmd:
                     raise TypeError("All arguments should be of type "
                                     "`CraneCmd`\nExample:\n"
-                                    "CraneCmd(\"MOVE\", position=Vec3i(0,0,0)")
+                                    "CraneCmd(\"MOVE\", position=Position(0,0,0)")
 
                 t_end = t_start
                 match arg.cmd:
@@ -403,7 +393,7 @@ class CraneControler:
 
     def fill_warehouse(self, *args):
         if len(args) > self.plane.x - 1:
-            raise ValueError(f"invalid x dimention!")
+            raise ValueError(f"invalid x dimension!")
 
         for arg in args:
             if type(arg) != list:
@@ -412,16 +402,16 @@ class CraneControler:
                 raise ValueError(f"too thick {len(arg)} - {self.plane.z}")
             for a in arg:
                 if a > (self.plane.y - 1):
-                    raise ValueError(f"to high")
+                    raise ValueError(f"too high")
             self.containers.append(arg)
 
 
 
 def main() -> int:
-    vector: Vec3i = Vec3i(1, 2, 3)
+    vector: Position = Position(1, 2, 3)
     print(vector)
 
-    with CraneControler(Vec3i(4, 3, 4)) as crane:
+    with CraneController(Size(4, 3, 4)) as crane:
         crane.set_move_speed(1)
         crane.fill_warehouse(
             [1, 1, 3, 3],
@@ -430,13 +420,13 @@ def main() -> int:
             [3, 1, 1, 1],
         )
         crane.append_cmds(
-            CraneCmd('MOVE', position=Vec3i(0,0,0)),
+            CraneCmd('MOVE', position=Position(0,0,0)),
             CraneCmd("ATTACH"),
-            CraneCmd('MOVE', position=Vec3i(0,3,0)),
-            CraneCmd('MOVE', position=Vec3i(3,3,3)),
-            CraneCmd('MOVE', position=Vec3i(3,1,3)),
+            CraneCmd('MOVE', position=Position(0,3,0)),
+            CraneCmd('MOVE', position=Position(3,3,3)),
+            CraneCmd('MOVE', position=Position(3,1,3)),
             CraneCmd('DETACH'),
-            CraneCmd('MOVE', position=Vec3i(3,3,3)),
+            CraneCmd('MOVE', position=Position(3,3,3)),
             CraneCmd("IDLE", duration=2000)
         )
         crane.exec()
