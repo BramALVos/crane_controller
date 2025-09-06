@@ -429,18 +429,17 @@ def main() -> int:
             [2, 2, 2, 2],
             [3, 1, 1, 1],
         )
-        while True:
-            crane.append_cmds(
-                CraneCmd('MOVE', position=Vec3i(0,0,0)),
-                CraneCmd("ATTACH"),
-                CraneCmd('MOVE', position=Vec3i(0,3,0)),
-                CraneCmd('MOVE', position=Vec3i(3,3,3)),
-                CraneCmd('MOVE', position=Vec3i(3,1,3)),
-                CraneCmd('DETACH'),
-                CraneCmd('MOVE', position=Vec3i(3,3,3)),
-                CraneCmd("IDLE", duration=2000)
-            )
-            crane.exec()
+        crane.append_cmds(
+            CraneCmd('MOVE', position=Vec3i(0,0,0)),
+            CraneCmd("ATTACH"),
+            CraneCmd('MOVE', position=Vec3i(0,3,0)),
+            CraneCmd('MOVE', position=Vec3i(3,3,3)),
+            CraneCmd('MOVE', position=Vec3i(3,1,3)),
+            CraneCmd('DETACH'),
+            CraneCmd('MOVE', position=Vec3i(3,3,3)),
+            CraneCmd("IDLE", duration=2000)
+        )
+        crane.exec()
 
     return 0
 
