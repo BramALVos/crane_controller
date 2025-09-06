@@ -1,14 +1,8 @@
 #!/usr/bin/env python3
 
 
-from pprint import pp
-from sys import thread_info
-from typing import Callable
 import threading
 import time
-from warnings import deprecated
-
-from pyray import color_alpha
 
 try:
     import pyray as rl
