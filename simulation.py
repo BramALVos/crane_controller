@@ -2,6 +2,7 @@
 
 import threading
 import time
+from enum import Enum, unique
 
 try:
     import pyray as rl
@@ -24,6 +25,9 @@ class Vec3i:
     def __repr__(self):
         return (f"{self.__class__.__name__}"
                 f"[x: {self.x}, y: {self.y}, z: {self.z}]")
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y and self.z == other.z
 
 
 class Position(Vec3i):
@@ -69,7 +73,7 @@ class CraneCmd:
                                      "crane_cmd(\"IDLE\", duration=1000")
     
                 if type(kwargs["duration"]) != int:
-                    raise IndexError("idle command duration has to be of type "
+                    raise TypeError("idle command duration has to be of type "
                                      "`int`\nFor example:\n"
                                      "crane_cmd(\"IDLE\", duration=1000")
     
@@ -82,7 +86,7 @@ class CraneCmd:
                                      "crane_cmd(\"MOVE\", position=Position(0,0,0)")
     
                 if type(kwargs["position"]) != Position:
-                    raise IndexError("move command position has to be of type "
+                    raise TypeError("move command position has to be of type "
                                      "`Position`\nFor example:\n"
                                      "crane_cmd(\"MOVE\", position=Position(0,0,0)")
     
@@ -407,33 +411,3 @@ class CraneController:
 
 
 
-def main() -> int:
-    vector: Position = Position(1, 2, 3)
-    print(vector)
-
-    with CraneController(Size(4, 3, 4)) as crane:
-        crane.set_move_speed(1)
-        crane.fill_warehouse(
-            [1, 1, 3, 3],
-            [3, 3, 2, 1],
-            [2, 2, 2, 2],
-            [3, 1, 1, 1],
-        )
-        while True:
-            crane.append_cmds(
-                CraneCmd('MOVE', position=Position(0,0,0)),
-                CraneCmd("ATTACH"),
-                CraneCmd('MOVE', position=Position(0,3,0)),
-                CraneCmd('MOVE', position=Position(3,3,3)),
-                CraneCmd('MOVE', position=Position(3,1,3)),
-                CraneCmd('DETACH'),
-                CraneCmd('MOVE', position=Position(3,3,3)),
-                CraneCmd("IDLE", duration=2000)
-            )
-            crane.exec()
-
-    return 0
-
-
-if __name__ == '__main__':
-    exit(main())
