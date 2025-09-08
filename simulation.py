@@ -101,10 +101,10 @@ class CraneCmd:
                 return f"CraneCmd: MOVE {self.position}"
             case 'I':
                 return f"CraneCmd: IDLE {self.duration} s"
-            case 'A':
-                return f"CraneCmd: ATTACH"
             case _:
-                return f"CraneCmd: DETACH"
+                return "CraneCmd: " + ("DETACH" if self.cmd == 'D' 
+                                                else "ATTACH")
+
 
 
 class CraneController:
@@ -198,8 +198,6 @@ class CraneController:
                                                   self.crane_starting_pos.z) * i
 
 
-                            case 'I':
-                                ...
                             case _:
                                 ...
                     else:
@@ -387,6 +385,8 @@ class CraneController:
         self._start_time = time.time_ns() // 1000_000
         self._inactive_simulation.clear()
         self._inactive_simulation.wait()
+        if not self._engine_is_running:
+            raise threading.ThreadError("Engine thread stopped")
 
     def set_move_speed(self, speed):
         self.speed[0] = 1/speed
@@ -419,17 +419,18 @@ def main() -> int:
             [2, 2, 2, 2],
             [3, 1, 1, 1],
         )
-        crane.append_cmds(
-            CraneCmd('MOVE', position=Position(0,0,0)),
-            CraneCmd("ATTACH"),
-            CraneCmd('MOVE', position=Position(0,3,0)),
-            CraneCmd('MOVE', position=Position(3,3,3)),
-            CraneCmd('MOVE', position=Position(3,1,3)),
-            CraneCmd('DETACH'),
-            CraneCmd('MOVE', position=Position(3,3,3)),
-            CraneCmd("IDLE", duration=2000)
-        )
-        crane.exec()
+        while True:
+            crane.append_cmds(
+                CraneCmd('MOVE', position=Position(0,0,0)),
+                CraneCmd("ATTACH"),
+                CraneCmd('MOVE', position=Position(0,3,0)),
+                CraneCmd('MOVE', position=Position(3,3,3)),
+                CraneCmd('MOVE', position=Position(3,1,3)),
+                CraneCmd('DETACH'),
+                CraneCmd('MOVE', position=Position(3,3,3)),
+                CraneCmd("IDLE", duration=2000)
+            )
+            crane.exec()
 
     return 0
 
