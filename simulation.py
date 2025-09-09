@@ -20,8 +20,13 @@ Licence: MIT
 Copyright (c) 2025 Bram Vos (vos0127@hz.nl)
 Copyright (c) 2025 gwaadiegwaa
 
-THIS CODE COMES WITH NO WARRANTY.
-USE AT YOUR OWN RISK!
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
 
 import threading
@@ -65,7 +70,7 @@ class Vec3i:
         """
         Compare two Vec3i's
         Parameters:
-            other (Vec3i): the Vec3i to compare to self
+            other (Vec3i): The Vec3i to compare to self
         Returns:
             True when self is equal to other, else return False
         """
@@ -75,14 +80,12 @@ class Vec3i:
 class Position(Vec3i):
     """
     A position in the 3D space of the warehouse.
-    This class is a child of Vec3i
     """
     ...
 
 class Size(Vec3i):
     """
     A 3D size.
-    This class is a child of Vec3i
     """
     ...
 
@@ -144,13 +147,15 @@ class CraneCmd:
                                MOVE needs a position kw argument as a Position
                                IDLE needs a duration kw argument as an int
         Returns:
-            A valid CraneCmd
+            A CraneCmd
         Raises:
-            when an invalid command is given or a kw argument is missing for
-            the MOVE or the IDLE command
+            When an invalid command is given a ValueError will be raised.
+            When a kw argument is missing for the MOVE or the IDLE command
+            An IndexError will be raised. A TypeError will be raised when 
+            a kw argument has an invalid type
         """
         if not cmd.isalpha():
-            raise TypeError("cmd should be one of the following strings:\n"
+            raise ValueError("cmd should be one of the following strings:\n"
                             "    ATTACH\n"
                             "    DETACH\n"
                             "    IDLE\n"
@@ -190,7 +195,7 @@ class CraneCmd:
                 self.cmd = 'M' 
                 self.position = kwargs["position"]
             case _:
-                raise TypeError("cmd should be one of the following strings:\n"
+                raise ValueError("cmd should be one of the following strings:\n"
                             "    ATTACH\n"
                             "    DETACH\n"
                             "    IDLE\n"
@@ -214,14 +219,14 @@ class CraneCmd:
 class CraneController:
     """
     This class is responsible for setting up / running a simulation
-    It spawns a render thread and is controlled by the main thread
-    This makes it possible to keep the window alive while doing other stuff
+    It spawns a render thread and is controlled by the main thread.
+    This makes it possible to keep the window alive while doing other stuff.
     """
     def __init__(self, warehouse_size: Size):
         """
         Initialize controller and spawn the render thread
         Parameters:
-            warehouse_size (Size): the size of the warehouse (how many blocks 
+            warehouse_size (Size): The size of the warehouse (how many blocks 
                                    should fit in the x, y and z directions)
         Returns:
             A ready to use CraneController (yay!)
@@ -666,14 +671,17 @@ class CraneController:
             TypeError when args contains a type other than list
         """
         if len(args) > self.plane.x - 1:
-            raise ValueError(f"invalid x dimension!")
+            raise ValueError("invalid x dimension (max x = "
+                             f"{self.plane.x - 2})")
 
         for arg in args:
             if type(arg) != list:
                 raise TypeError("not a list!")
             elif len(arg) > self.plane.z:
-                raise ValueError(f"invalid z dimention")
+                raise ValueError("invalid z dimention (max z = "
+                                 f"{self.plane.z - 3})")
             for a in arg:
                 if a > (self.plane.y - 1):
-                    raise ValueError(f"invalid y dimention")
+                    raise ValueError("invalid y dimention (max y = "
+                                     f"{self.plane.y - 1})")
             self.containers.append(arg)
