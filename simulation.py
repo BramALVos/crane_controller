@@ -31,6 +31,7 @@ SOFTWARE.
 
 import threading
 import time
+from typing import Self
 
 try:
     import pyray as rl
@@ -126,95 +127,126 @@ def smoothstep(edge0: float, edge1: float, x: float):
     return (3 - 2 * x) * (x ** 2)   # 3x^2 - 2x^3
 
 
-class CraneCmd:
+class CranePath:
     """
-    A structure which contains one of the supported commands for the crane
-    It is used by the CraneController.append_cmds() function
-    As a first layer of typechecking
+    This class is used for chaining crane commands.
+    They can be passed to CraneController.exec() to execute them
     """
-
-    def __init__(self, cmd: str, **kwargs):
+    def __init__(self, warehouse_size: Size, move_speed: int, 
+                 attach_detach_speed: int):
         """
-        Create a CraneCmd
+        Initialize a CranePath structure.
+        Commands can be pushed to this structure later on.
+        """
+        self._cmds: list[tuple] = []
+        self._move_speed = move_speed
+        self._attach_detach_speed = attach_detach_speed
+        self._warehouse_size = warehouse_size
+        self._warehouse_size.x += 1
+        self._warehouse_size.y += 1
 
+    def __len__(self):
+        """
+        Return the command count
+        """
+        return len(self._cmds)
+
+    def _check_position(self, position: Position) -> None:
+        """
+        Determine if a coordinate is valid (aka does it fit in the warehouse)
         Parameters:
-            cmd (str): A valid command. Valid commands are:
-                       "ATTACH"
-                       "DETACH"
-                       "MOVE"
-                       "IDLE"
-        kwargs dict[str, any]: An extra argument. Only used with MOVE and IDLE
-                               MOVE needs a position kw argument as a Position
-                               IDLE needs a duration kw argument as an int
+            position (Position): The coordinate to be checked
         Returns:
-            A CraneCmd
+            None
         Raises:
-            When an invalid command is given a ValueError will be raised.
-            When a kw argument is missing for the MOVE or the IDLE command
-            An IndexError will be raised. A TypeError will be raised when 
-            a kw argument has an invalid type
+            a ValueError when the coordinate is not inside the warehouse
         """
-        if not cmd.isalpha():
-            raise ValueError("cmd should be one of the following strings:\n"
-                            "    ATTACH\n"
-                            "    DETACH\n"
-                            "    IDLE\n"
-                            "    MOVE\n")
-    
-        cmd.upper()
-    
-        match cmd:
-            case "ATTACH":
-                self.cmd = 'A'
-            case "DETACH":
-                self.cmd = 'D'
-            case "IDLE":
-                if not "duration" in kwargs:
-                    raise IndexError("idle command needs a keyword argument "
-                                     "`duration` is ms\nFor example:\n"
-                                     "crane_cmd(\"IDLE\", duration=1000")
-    
-                if type(kwargs["duration"]) != int:
-                    raise TypeError("idle command duration has to be of type "
-                                     "`int`\nFor example:\n"
-                                     "crane_cmd(\"IDLE\", duration=1000")
-    
-                self.cmd = 'I'
-                self.duration = kwargs["duration"]
-            case "MOVE":
-                if not "position" in kwargs:
-                    raise IndexError("move command needs a keyword argument "
-                                     "`position`\nFor example:\n"
-                                     "crane_cmd(\"MOVE\", position=Position(0,0,0)")
-    
-                if type(kwargs["position"]) != Position:
-                    raise TypeError("move command position has to be of type "
-                                     "`Position`\nFor example:\n"
-                                     "crane_cmd(\"MOVE\", position=Position(0,0,0)")
-    
-                self.cmd = 'M' 
-                self.position = kwargs["position"]
-            case _:
-                raise ValueError("cmd should be one of the following strings:\n"
-                            "    ATTACH\n"
-                            "    DETACH\n"
-                            "    IDLE\n"
-                            "    MOVE\n")
+        if position.x + 1 >= self._warehouse_size.x:
+            raise ValueError("invalid x dimension "
+                             f"(max is {self._warehouse_size.x - 2})")
+        if position.y + 1 >= self._warehouse_size.y:
+            raise ValueError("invalid y dimension "
+                             f"(max is {self._warehouse_size.y - 2})")
+        if position.z >= self._warehouse_size.z:
+            raise ValueError("invalid z dimension "
+                             f"(max is {self._warehouse_size.z - 1})")
 
-    def __repr__(self) -> str:
+    def attach(self) -> Self:
         """
-        Returns a string representation of a CraneCmd
+        Append an attach command. This command wil attach a container 
+        to the crane when possible
         """
-        match self.cmd:
-            case 'M':
-                return f"CraneCmd: MOVE {self.position}"
-            case 'I':
-                return f"CraneCmd: IDLE {self.duration} s"
-            case _:
-                return "CraneCmd: " + ("DETACH" if self.cmd == 'D' 
-                                                else "ATTACH")
+        self._cmds.append(('A',
+                           *self._calculate_duration(self._attach_detach_speed)
+                           ))
+        return self
 
+    def detach(self) -> Self:
+        """
+        Append a detach command. This command wil detach a container 
+        from the crane when possible
+        """
+        self._cmds.append(('D', 
+                           *self._calculate_duration(self._attach_detach_speed)
+                           ))
+        return self
 
+    def move(self, position: Position) -> Self:
+        """
+        Append a move command. This command will move the crane to 
+        certain position.
+        Parameters:
+            position (Position): The position to which the crane should move
+        Raises:
+            A ValueError when an invalid position is given.
+        """
+        self._check_position(position)
+        self._cmds.append(('M', 
+                           *self._calculate_duration(self._move_speed),
+                           position))
+        return self
+
+    def idle(self, duration: int) -> Self:
+        """
+        Append an idle command. This command will make the crane wait for a 
+        duration in ms.
+        Parameters:
+            duration (int): A duration to wait for in ms
+        """
+        self._cmds.append(("I", 
+                           *self._calculate_duration(duration)))
+        return self
+
+    def _calculate_duration(self, duration: int):
+        """
+        Calculate the start and end time for a command.
+        Parameters:
+            duration (int): The duration of the command
+        Returns:
+            A tuple with the start and end time of the command
+        """
+        t_start: int = 0
+        if len(self._cmds) > 0:
+            t_start = self._cmds[-1][2]
+
+        t_end: int = t_start + duration
+        return (t_start, t_end)
+
+    def __repr__(self):
+        """
+        Return the string representation of a CranePath.
+        """
+        result = ""
+        mapping: dict[str, str] = {'M': "MOVE", 'D': "DETACH", 
+                                   'A': "ATTACH", 'I': "IDLE"}
+        for cmd in self._cmds:
+            result += f"{mapping[cmd[0]]}"
+            if cmd[0] == 'M':
+                result += f" {cmd[3]}"
+            elif cmd[0] == 'I':
+                result += f" {cmd[2] - cmd[1]}"
+            result += f" @ {cmd[1]}\n"
+        return result
 
 class CraneController:
     """
@@ -232,11 +264,11 @@ class CraneController:
             A ready to use CraneController (yay!)
         """
         self.cmd_lock = threading.Lock()
-        self.cmd_list: list[tuple[CraneCmd, int, int]] = []
+        self.cmd_list: list[tuple] = []
         self.speed = [1, 1, 1]
         self.plane = warehouse_size
         self.plane.x += 1
-        self.plane.y += 2
+        self.plane.y += 1
         self.containers: list[list[int]] = []
         self.attached_container = False
 
@@ -300,8 +332,6 @@ class CraneController:
                                  self.crane_starting_pos.y,
                                  self.crane_starting_pos.z)
 
-        self.delta_time: int = 0
-
         while not rl.window_should_close() and not self._engine_shutdown:
             rl.update_camera(camera, rl.CameraMode.CAMERA_THIRD_PERSON)
             #rl.set_mouse_position(1280 // 2, 720 // 2)
@@ -320,7 +350,7 @@ class CraneController:
                                 continue
 
                             current_cmd = self.cmd_list[0]
-                        match current_cmd[0].cmd:
+                        match current_cmd[0]:
                             case 'M':
                                 i = smoothstep(current_cmd[1], 
                                                current_cmd[2], 
@@ -330,11 +360,11 @@ class CraneController:
                                                          self.crane_starting_pos.y,
                                                          self.crane_starting_pos.z)
 
-                                current_pos.x += (current_cmd[0].position.x -
+                                current_pos.x += (current_cmd[3].x -
                                                   self.crane_starting_pos.x) * i
-                                current_pos.y += (current_cmd[0].position.y -
+                                current_pos.y += (current_cmd[3].y -
                                                   self.crane_starting_pos.y) * i
-                                current_pos.z += (current_cmd[0].position.z -
+                                current_pos.z += (current_cmd[3].z -
                                                   self.crane_starting_pos.z) * i
 
 
@@ -352,8 +382,8 @@ class CraneController:
             rl.draw_text("Crane visualizer by Bram Vos", 10, 700, 14, rl.GRAY)
             rl.begin_mode_3d(camera)
 
-            self.draw_crane(current_pos)
-            self.draw_containers()
+            self._draw_crane(current_pos)
+            self._draw_containers()
 
 
             rl.draw_grid(10, 1.)
@@ -418,9 +448,9 @@ class CraneController:
         """
         for _ in range(end):
             print(f"{self.cmd_list[0][0]} @ t = {t} ms")
-            match self.cmd_list[0][0].cmd:
+            match self.cmd_list[0][0]:
                 case 'M':
-                    self.crane_starting_pos = self.cmd_list[0][0].position
+                    self.crane_starting_pos = self.cmd_list[0][3]
                 case 'A':
                     if not self._attach_container(self.crane_starting_pos):
                         self._inactive_simulation.set()
@@ -434,7 +464,7 @@ class CraneController:
 
             self.cmd_list.pop(0)
 
-    def draw_containers(self):
+    def _draw_containers(self):
         """
         Draw the containers in the warehouse as a cube
         """
@@ -446,7 +476,7 @@ class CraneController:
                     rl.draw_cube_v(pos, size, rl.BLUE)
                     rl.draw_cube_wires_v(pos, size, rl.SKYBLUE)
 
-    def draw_crane(self, position: rl.Vector3):
+    def _draw_crane(self, position: rl.Vector3):
         """
         Draw the crane at a certain position in the warehouse
         Parameters:
@@ -543,24 +573,6 @@ class CraneController:
             rl.draw_cube_v(pos, size, rl.BLUE)
             rl.draw_cube_wires_v(pos, size, rl.RED)
 
-
-    def check_coord(self, coord: Position) -> None:
-        """
-        Determine if a coordinate is valid (aka does it fit in the warehouse)
-        Parameters:
-            coord (Position): The coordinate to be checked
-        Returns:
-            None
-        Raises:
-            a ValueError when the coordinate is not inside the warehouse
-        """
-        if coord.x + 1 >= self.plane.x:
-            raise ValueError("invalid x dimension")
-        if coord.y + 1 >= self.plane.y:
-            raise ValueError("invalid y dimension")
-        if coord.z >= self.plane.z:
-            raise ValueError("invalid x dimension")
-
     def _detach_container(self, pos: Position) -> bool:
         """
         Try to detach a container a when the hook is a certain position
@@ -591,67 +603,19 @@ class CraneController:
         self.attached_container = True
         return True
 
-
-    def append_cmds(self, *args):
-        """
-        Append one or more commands to the command list
-        Parameters:
-            args (tuple[CraneCmd]): A list of CraneCmd's
-        Returns:
-            None
-        Raises:
-            A TypeError when args contained something other than CraneCmd
-            or a ValueError when the position associated with a MOVE command
-            is not inside the warehouse
-        """
-        with self.cmd_lock:
-            for arg in args:
-                t_start = 0
-                if len(self.cmd_list) > 0:
-                    t_start = self.cmd_list[-1][2]
-
-                if type(arg) != CraneCmd:
-                    raise TypeError("All arguments should be of type "
-                                    "`CraneCmd`\nExample:\n"
-                                    "CraneCmd(\"MOVE\", position=Position(0,0,0)")
-
-                t_end = t_start
-                match arg.cmd:
-                    case 'I':
-                        t_end = t_start + arg.duration
-                    case 'A':
-                        t_end = t_start + self.speed[2] * 1000
-                    case 'D':
-                        t_end = t_start + self.speed[2] * 1000
-                    case 'M':
-                        self.check_coord(arg.position)
-                        t_end = t_start + self.speed[0] * 1000
-
-                self.cmd_list.append((arg, t_start, t_end))
-
-
-    def exec(self):
+    def exec(self, path: CranePath):
         """
         Execute a list of CraneCmd's supplied to append_cmds
         Raises:
             A ThreadError when the render thread (aka engine thread) has died
         """
         self._start_time = time.time_ns() // 1000_000
+        with self.cmd_lock:
+            self.cmd_list = path._cmds
         self._inactive_simulation.clear()
         self._inactive_simulation.wait()
         if not self._engine_is_running:
             raise threading.ThreadError("Engine thread stopped")
-
-    def set_move_speed(self, speed):
-        """
-        Set the move speed of the crane
-        Parameters:
-            speed (float): The speed of the crane
-        TODO:
-            add a speed constraint of a 1000
-            This function needs attention in general
-        """
-        self.speed[0] = 1/speed
 
     def fill_warehouse(self, *args):
         """
@@ -670,6 +634,7 @@ class CraneController:
             A ValueError when x, y, or z is not inside the warehouse or a
             TypeError when args contains a type other than list
         """
+        self.containers.clear()
         if len(args) > self.plane.x - 1:
             raise ValueError("invalid x dimension (max x = "
                              f"{self.plane.x - 2})")
@@ -681,7 +646,7 @@ class CraneController:
                 raise ValueError("invalid z dimention (max z = "
                                  f"{self.plane.z - 3})")
             for a in arg:
-                if a > (self.plane.y - 1):
+                if a > (self.plane.y):
                     raise ValueError("invalid y dimention (max y = "
                                      f"{self.plane.y - 1})")
             self.containers.append(arg)
