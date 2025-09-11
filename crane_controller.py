@@ -168,6 +168,8 @@ class CranePath:
         Raises:
             a ValueError when the coordinate is not inside the warehouse
         """
+        if position.x < 0 or position.y < 0 or position.z < 0:
+            raise ValueError("x, y, or z may not be less than 0")
         if position.x >= self._warehouse_size.x:
             raise ValueError("invalid x dimension "
                              f"(max is {self._warehouse_size.x - 2})")
