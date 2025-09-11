@@ -261,15 +261,22 @@ class CraneController:
     It spawns a render thread and is controlled by the main thread.
     This makes it possible to keep the window alive while doing other stuff.
     """
-    def __init__(self, warehouse_size: Size):
+    def __init__(self, warehouse_size: Size, window_width=1280, 
+                 window_height=720, resizeable=False):
         """
         Initialize controller and spawn the render thread
         Parameters:
             warehouse_size (Size): The size of the warehouse (how many blocks 
                                    should fit in the x, y and z directions)
+            window_width (int): The width of the window (default 1280 px)
+            window_height (int): The height of the window (default 720 px)
         Returns:
             A ready to use CraneController (yay!)
         """
+        self.window_width = window_width
+        self.window_height = window_height
+        self.resizeable = resizeable
+
         self.cmd_lock = threading.Lock()
         self.cmd_list: list[tuple] = []
         self.speed = [1, 1, 1]
@@ -318,8 +325,10 @@ class CraneController:
         """
         self._engine_is_running = True
         rl.set_trace_log_level(rl.TraceLogLevel.LOG_WARNING)
-        rl.init_window(1280, 720, "Test")
+        rl.init_window(self.window_width, self.window_height, "CraneController")
         rl.set_target_fps(60)
+        if self.resizeable:
+            rl.set_config_flags(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
 
         camera = rl.Camera3D()
         camera.position = rl.Vector3(10., 10., 10.)
@@ -338,7 +347,9 @@ class CraneController:
 
         while not rl.window_should_close() and not self._engine_shutdown:
             rl.update_camera(camera, rl.CameraMode.CAMERA_THIRD_PERSON)
-            #rl.set_mouse_position(1280 // 2, 720 // 2)
+            current_pos = rl.Vector3(self.crane_starting_pos.x,
+                                     self.crane_starting_pos.y,
+                                     self.crane_starting_pos.z)
 
             if not self._inactive_simulation.is_set():
                 with self.cmd_lock:
@@ -375,13 +386,9 @@ class CraneController:
                     else:
                         self._inactive_simulation.set()
 
-
-
-
             rl.begin_drawing()
             rl.clear_background(rl.WHITE)
             rl.draw_text(f"fps: {rl.get_fps()}", 10, 10, 20, rl.GRAY)
-            rl.draw_text("Crane visualizer by Bram Vos", 10, 700, 14, rl.GRAY)
             rl.begin_mode_3d(camera)
 
             self._draw_crane(current_pos)
