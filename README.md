@@ -33,11 +33,11 @@ If you use Linux run (in a virtual environment):\
 Open `example.py` and play a bit with the code. Have a look what happens 
 when you change a variable or add a couple of commands! If you get the basics
 of the functionality you can start integrating it in your project!
-You need to import the `simulation.py` file for this. If you would like to have 
+You need to import the `crane_controller.py` file for this. If you would like to have 
 access to all the classes and functions without having to type a namespace you 
 can include the module as follows
 ```python
-from simulation import *
+from crane_controller import *
 
 def your_main_function():
     ...
