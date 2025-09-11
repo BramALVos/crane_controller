@@ -149,8 +149,6 @@ class CranePath:
         self._attach_detach_speed = 1001 - attach_detach_speed
         self._warehouse_size = deepcopy(warehouse_size)
         self._warehouse_size.y += 1
-        print(self._move_speed)
-        print(self._attach_detach_speed)
 
     def __len__(self):
         """
@@ -173,7 +171,7 @@ class CranePath:
         if position.x >= self._warehouse_size.x:
             raise ValueError("invalid x dimension "
                              f"(max is {self._warehouse_size.x - 2})")
-        if position.y > self._warehouse_size.y:
+        if position.y >= self._warehouse_size.y:
             raise ValueError("invalid y dimension "
                              f"(max is {self._warehouse_size.y - 2})")
         if position.z >= self._warehouse_size.z:
@@ -222,6 +220,8 @@ class CranePath:
         Parameters:
             duration (int): A duration to wait for in ms
         """
+        if duration < 1:
+            raise ValueError("duration must be 1 ms or higher")
         self._cmds.append(("I", 
                            *self._calculate_duration(duration)))
         return self
@@ -458,7 +458,7 @@ class CraneController:
             simulation
         """
         for _ in range(end):
-            print(f"{self.cmd_list[0][0]} @ t = {t} ms")
+            #print(f"{self.cmd_list[0][0]} @ t = {t} ms")
             match self.cmd_list[0][0]:
                 case 'M':
                     self.crane_starting_pos = self.cmd_list[0][3]

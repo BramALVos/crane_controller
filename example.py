@@ -12,6 +12,8 @@ def main():
                                 attach_and_detach_speed)
 
     with CraneController(warehouse_size) as crane:
+        path: CranePath = CranePath(warehouse_size, moving_speed, 
+                                    attach_and_detach_speed)
 
         crane.fill_warehouse(
             [1, 1, 3, 3],
@@ -20,7 +22,8 @@ def main():
             [3, 1, 1, 1],
         )
 
-        (path.move_to(Position(0,0,0))
+        (path.move_to(Position(3,3,3))
+             .move_to(Position(0,0,0))
              .attach()
              .move_to(Position(0,3,0))
              .move_to(Position(3,3,3))
