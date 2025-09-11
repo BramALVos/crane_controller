@@ -335,9 +335,6 @@ class CraneController:
 
         rl.disable_cursor()
 
-        current_pos = rl.Vector3(self.crane_starting_pos.x,
-                                 self.crane_starting_pos.y,
-                                 self.crane_starting_pos.z)
 
         while not rl.window_should_close() and not self._engine_shutdown:
             rl.update_camera(camera, rl.CameraMode.CAMERA_THIRD_PERSON)
@@ -357,15 +354,15 @@ class CraneController:
                                 continue
 
                             current_cmd = self.cmd_list[0]
+
+                        current_pos = rl.Vector3(self.crane_starting_pos.x,
+                                                 self.crane_starting_pos.y,
+                                                 self.crane_starting_pos.z)
                         match current_cmd[0]:
                             case 'M':
                                 i = smoothstep(current_cmd[1], 
                                                current_cmd[2], 
                                                time_index)
-
-                                current_pos = rl.Vector3(self.crane_starting_pos.x,
-                                                         self.crane_starting_pos.y,
-                                                         self.crane_starting_pos.z)
 
                                 current_pos.x += (current_cmd[3].x -
                                                   self.crane_starting_pos.x) * i
@@ -373,8 +370,6 @@ class CraneController:
                                                   self.crane_starting_pos.y) * i
                                 current_pos.z += (current_cmd[3].z -
                                                   self.crane_starting_pos.z) * i
-
-
                             case _:
                                 ...
                     else:
