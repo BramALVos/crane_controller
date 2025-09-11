@@ -32,6 +32,7 @@ SOFTWARE.
 import threading
 import time
 from typing import Self
+from copy import deepcopy
 
 try:
     import pyray as rl
@@ -146,8 +147,7 @@ class CranePath:
         self._cmds: list[tuple] = []
         self._move_speed = 1001 - move_speed
         self._attach_detach_speed = 1001 - attach_detach_speed
-        self._warehouse_size = warehouse_size
-        self._warehouse_size.x += 1
+        self._warehouse_size = deepcopy(warehouse_size)
         self._warehouse_size.y += 1
         print(self._move_speed)
         print(self._attach_detach_speed)
@@ -168,10 +168,10 @@ class CranePath:
         Raises:
             a ValueError when the coordinate is not inside the warehouse
         """
-        if position.x + 1 >= self._warehouse_size.x:
+        if position.x >= self._warehouse_size.x:
             raise ValueError("invalid x dimension "
                              f"(max is {self._warehouse_size.x - 2})")
-        if position.y + 1 >= self._warehouse_size.y:
+        if position.y > self._warehouse_size.y:
             raise ValueError("invalid y dimension "
                              f"(max is {self._warehouse_size.y - 2})")
         if position.z >= self._warehouse_size.z:
@@ -280,9 +280,9 @@ class CraneController:
         self.cmd_lock = threading.Lock()
         self.cmd_list: list[tuple] = []
         self.speed = [1, 1, 1]
-        self.plane = warehouse_size
+        self.plane = deepcopy(warehouse_size)
         self.plane.x += 1
-        self.plane.y += 1
+        self.plane.y += 2
         self.containers: list[list[int]] = []
         self.attached_container = False
 
