@@ -19,18 +19,19 @@ def main() -> int:
                 [2, 2, 2, 2],
                 [3, 1, 1, 1],
             )
+
             (
-            path
-            .move(Position(0,0,0))
-            .attach()
-            .move(Position(0,3,0))
-            .move(Position(3,3,3))
-            .move(Position(3,1,3))
-            .detach()
-            .move(Position(3,3,3))
-            .idle(2000)
+            path.move_to(Position(0,0,0))
+                .attach()
+                .move_to(Position(0,3,0))
+                .move_to(Position(3,3,3))
+                .move_to(Position(3,1,3))
+                .detach()
+                .move_to(Position(3,3,3))
+                .idle(2000)
+                .move_to(Position(0,3,0))
             )
-            path.move(Position(0,3,0))
+
             crane.exec(path)
 
     return 0

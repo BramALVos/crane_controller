@@ -191,7 +191,7 @@ class CranePath:
                            ))
         return self
 
-    def move(self, position: Position) -> Self:
+    def move_to(self, position: Position) -> Self:
         """
         Append a move command. This command will move the crane to 
         certain position.
