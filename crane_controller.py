@@ -138,12 +138,19 @@ class CranePath:
         Initialize a CranePath structure.
         Commands can be pushed to this structure later on.
         """
+        if not (1 <= move_speed <= 1000):
+            raise ValueError("move_speed must be between 1 and 999")
+        elif not (1 <= attach_detach_speed <= 1000):
+            raise ValueError("attach_detach_speed must be between 1 and 999")
+
         self._cmds: list[tuple] = []
-        self._move_speed = move_speed
-        self._attach_detach_speed = attach_detach_speed
+        self._move_speed = 1001 - move_speed
+        self._attach_detach_speed = 1001 - attach_detach_speed
         self._warehouse_size = warehouse_size
         self._warehouse_size.x += 1
         self._warehouse_size.y += 1
+        print(self._move_speed)
+        print(self._attach_detach_speed)
 
     def __len__(self):
         """
