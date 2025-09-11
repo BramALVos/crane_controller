@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from simulation import *
+from crane_controller import *
 
 def main() -> int:
     vector: Position = Position(1, 2, 3)
