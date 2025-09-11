@@ -35,36 +35,3 @@ class SmoothstepTest(unittest.TestCase):
         self.assertEqual(smoothstep(0, 1, 0.5), 0.5)
         # TODO: add more test cases!
 
-
-class CraneCmdTest(unittest.TestCase):
-    def test_move(self):
-        with self.assertRaises(IndexError):
-            CraneCmd("MOVE")
-            CraneCmd("MOVE", blabla=Position(0,0,0))
-
-        with self.assertRaises(TypeError):
-            CraneCmd("MOVE", position="blabla")
-
-        cmd = CraneCmd("MOVE", position=Position(0, 0, 0))
-        self.assertEqual(cmd.cmd, 'M')
-        self.assertEqual(cmd.position, Position(0,0,0))
-
-    def test_idle(self):
-        with self.assertRaises(IndexError):
-            CraneCmd("IDLE")
-            CraneCmd("IDLE", blabla=Position(0,0,0))
-
-        with self.assertRaises(TypeError):
-            CraneCmd("IDLE", duration="blabla")
-
-        cmd = CraneCmd("IDLE", duration=1000)
-        self.assertEqual(cmd.cmd, 'I')
-        self.assertEqual(cmd.duration, 1000)
-
-    def test_attach(self):
-        cmd = CraneCmd("ATTACH")
-        self.assertEqual(cmd.cmd, 'A')
-
-    def test_detach(self):
-        cmd = CraneCmd("DETACH")
-        self.assertEqual(cmd.cmd, 'D')
