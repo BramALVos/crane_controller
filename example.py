@@ -20,8 +20,7 @@ def main() -> int:
                 [3, 1, 1, 1],
             )
 
-            (
-            path.move_to(Position(0,0,0))
+            (path.move_to(Position(0,0,0))
                 .attach()
                 .move_to(Position(0,3,0))
                 .move_to(Position(3,3,3))
@@ -29,8 +28,7 @@ def main() -> int:
                 .detach()
                 .move_to(Position(3,3,3))
                 .idle(2000)
-                .move_to(Position(0,3,0))
-            )
+                .move_to(Position(0,3,0)))
 
             crane.exec(path)
 
