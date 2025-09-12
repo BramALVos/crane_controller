@@ -82,7 +82,8 @@ with CraneController(warehouse_size) as crane:
          .attach()
          .move_to(Position(0, 3, 0))
          .move_to(Position(1, 3, 0))
-         .move_to(Position(1, 0, 0))
+         .move_to(Position(0, 3, 0))
+         .move_to(Position(0, 0, 0))
          .detach()
          .idle(1000))  # you can keep adding commands for as long
     # as you like
@@ -109,7 +110,8 @@ with CraneController(warehouse_size) as crane:
          .attach()
          .move_to(Position(0, 3, 0))
          .move_to(Position(1, 3, 0))
-         .move_to(Position(1, 0, 0))
+         .move_to(Position(0, 3, 0))
+         .move_to(Position(0, 0, 0))
          .detach()
          .idle(1000))
 ```
@@ -134,7 +136,8 @@ with CraneController(warehouse_size) as crane:
          .attach()
          .move_to(Position(0, 3, 0))
          .move_to(Position(1, 3, 0))
-         .move_to(Position(1, 0, 0))
+         .move_to(Position(0, 3, 0))
+         .move_to(Position(0, 0, 0))
          .detach()
          .idle(1000))
 
