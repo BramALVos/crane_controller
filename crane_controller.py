@@ -154,20 +154,20 @@ class CranePath:
     They can be passed to CraneController.exec() to execute them
     """
 
-    def __init__(self, warehouse_size: Size, move_speed: int,
-                 attach_detach_speed: int):
+    def __init__(self, warehouse_size: Size, move_speed: float,
+                 attach_detach_speed: float):
         """
         Initialize a CranePath structure.
         Commands can be pushed to this structure later on.
         """
-        if not (1 <= move_speed <= 1000):
-            raise ValueError("move_speed must be between 1 and 999")
-        elif not (1 <= attach_detach_speed <= 1000):
-            raise ValueError("attach_detach_speed must be between 1 and 999")
+        if not (0. < move_speed < 1000.):
+            raise ValueError("move_speed must be between 0 and 1000")
+        elif not (0. < attach_detach_speed < 1000.):
+            raise ValueError("attach_detach_speed must be between 0 and 1000")
 
         self._cmds: list[tuple] = []
-        self._move_speed = 1001 - move_speed
-        self._attach_detach_speed = 1001 - attach_detach_speed
+        self._move_speed = int(1000. / move_speed)
+        self._attach_detach_speed = int(1000. / attach_detach_speed)
         self._warehouse_size = deepcopy(warehouse_size)
         self._warehouse_size.y += 1
 
@@ -310,7 +310,6 @@ class CraneController:
 
         self.cmd_lock = threading.Lock()
         self.cmd_list: list[tuple] = []
-        self.speed = [1, 1, 1]
         self.plane = deepcopy(warehouse_size)
         self.plane.x += 1
         self.plane.y += 2
