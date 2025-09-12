@@ -82,14 +82,28 @@ class Vec3i:
 class Position(Vec3i):
     """
     A position in the 3D space of the warehouse.
+    Parameters:
+        x (int): The x value of the vector
+        height (int): The y value of the vector
+        z (int): The z value of the vector
+    Returns:
+        A new Vec3i with the passed values for x, y and z
     """
-    ...
+    def __init__(self, x: int, height: int, z: int):
+        super().__init__(x, height, z)
 
 class Size(Vec3i):
     """
-    A 3D size.
+    A size in 3D space.
+    Parameters:
+        width (int): The x value of the vector
+        height (int): The y value of the vector
+        length (int): The z value of the vector
+    Returns:
+        A new Vec3i with the passed values for x, y and z
     """
-    ...
+    def __init__(self, width: int, height: int, length: int):
+        super().__init__(width, height, length)
 
 def clamp(x: float, lower_limit: float=0.0, upper_limit: float=1.0):
     """
