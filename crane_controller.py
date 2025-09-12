@@ -46,7 +46,8 @@ class Vec3i:
     """
     3D Integer vector class
     This class serves as the baseclass for the Position and Size class
-    """ 
+    """
+
     def __init__(self, x: int, y: int, z: int):
         """
         Initialize a Vec3i
@@ -89,8 +90,10 @@ class Position(Vec3i):
     Returns:
         A new Vec3i with the passed values for x, y and z
     """
+
     def __init__(self, x: int, height: int, z: int):
         super().__init__(x, height, z)
+
 
 class Size(Vec3i):
     """
@@ -102,10 +105,12 @@ class Size(Vec3i):
     Returns:
         A new Vec3i with the passed values for x, y and z
     """
+
     def __init__(self, width: int, height: int, length: int):
         super().__init__(width, height, length)
 
-def clamp(x: float, lower_limit: float=0.0, upper_limit: float=1.0):
+
+def clamp(x: float, lower_limit: float = 0.0, upper_limit: float = 1.0):
     """
     clamp a value between two points
     Parameters:
@@ -124,12 +129,13 @@ def clamp(x: float, lower_limit: float=0.0, upper_limit: float=1.0):
     """
     return min(max(x, lower_limit), upper_limit)
 
-# adapted from: https://en.wikipedia.org/wiki/Smoothstep
+
 def smoothstep(edge0: float, edge1: float, x: float):
     """
-    return a value between 0 and 1 with a smooth transition at the beginning 
+    Return a value between 0 and 1 with a smooth transition at the beginning
     and end.
 
+    Adapted from: https://en.wikipedia.org/wiki/Smoothstep
     Parameters:
         edge0 (float): The lowest value that x can be
         edge1 (float): The biggest value that x can be
@@ -139,7 +145,7 @@ def smoothstep(edge0: float, edge1: float, x: float):
         3x^2 - 2x^3 where x has been clamped with the help of edge0 and edge1
     """
     x = clamp((x - edge0) / (edge1 - edge0))
-    return (3 - 2 * x) * (x ** 2)   # 3x^2 - 2x^3
+    return (3 - 2 * x) * (x ** 2)  # 3x^2 - 2x^3
 
 
 class CranePath:
@@ -147,7 +153,8 @@ class CranePath:
     This class is used for chaining crane commands.
     They can be passed to CraneController.exec() to execute them
     """
-    def __init__(self, warehouse_size: Size, move_speed: int, 
+
+    def __init__(self, warehouse_size: Size, move_speed: int,
                  attach_detach_speed: int):
         """
         Initialize a CranePath structure.
@@ -197,9 +204,9 @@ class CranePath:
         Append an attach command. This command wil attach a container 
         to the crane when possible
         """
-        self._cmds.append(('A',
-                           *self._calculate_duration(self._attach_detach_speed)
-                           ))
+        self._cmds.append((
+            'A', *self._calculate_duration(self._attach_detach_speed)
+        ))
         return self
 
     def detach(self) -> Self:
@@ -207,9 +214,9 @@ class CranePath:
         Append a detach command. This command wil detach a container 
         from the crane when possible
         """
-        self._cmds.append(('D', 
-                           *self._calculate_duration(self._attach_detach_speed)
-                           ))
+        self._cmds.append((
+            'D', *self._calculate_duration(self._attach_detach_speed)
+        ))
         return self
 
     def move_to(self, position: Position) -> Self:
@@ -222,9 +229,10 @@ class CranePath:
             A ValueError when an invalid position is given.
         """
         self._check_position(position)
-        self._cmds.append(('M', 
-                           *self._calculate_duration(self._move_speed),
-                           position))
+
+        self._cmds.append((
+            'M', *self._calculate_duration(self._move_speed), position
+        ))
         return self
 
     def idle(self, duration: int) -> Self:
@@ -236,8 +244,10 @@ class CranePath:
         """
         if duration < 1:
             raise ValueError("duration must be 1 ms or higher")
-        self._cmds.append(("I", 
-                           *self._calculate_duration(duration)))
+
+        self._cmds.append((
+            "I", *self._calculate_duration(duration)
+        ))
         return self
 
     def _calculate_duration(self, duration: int):
@@ -260,16 +270,19 @@ class CranePath:
         Return the string representation of a CranePath.
         """
         result = ""
-        mapping: dict[str, str] = {'M': "MOVE", 'D': "DETACH", 
+        mapping: dict[str, str] = {'M': "MOVE", 'D': "DETACH",
                                    'A': "ATTACH", 'I': "IDLE"}
         for cmd in self._cmds:
             result += f"{mapping[cmd[0]]}"
+
             if cmd[0] == 'M':
                 result += f" {cmd[3]}"
             elif cmd[0] == 'I':
                 result += f" {cmd[2] - cmd[1]}"
+
             result += f" @ {cmd[1]}\n"
         return result
+
 
 class CraneController:
     """
@@ -277,7 +290,8 @@ class CraneController:
     It spawns a render thread and is controlled by the main thread.
     This makes it possible to keep the window alive while doing other stuff.
     """
-    def __init__(self, warehouse_size: Size, window_width=1280, 
+
+    def __init__(self, warehouse_size: Size, window_width=1280,
                  window_height=720, resizeable=False):
         """
         Initialize controller and spawn the render thread
@@ -331,7 +345,6 @@ class CraneController:
         if self._engine_is_running:
             self._engine_thread.join()
 
-
     def _engine_run(self):
         """
         This method is responsible for all the rendering and is run as a 
@@ -348,9 +361,9 @@ class CraneController:
 
         camera = rl.Camera3D()
         camera.position = rl.Vector3(10., 10., 10.)
-        camera.target=rl.Vector3(0, 0, 0)
-        camera.up=rl.Vector3(0, 1., 0)
-        camera.fovy=45.0
+        camera.target = rl.Vector3(0, 0, 0)
+        camera.up = rl.Vector3(0, 1., 0)
+        camera.fovy = 45.0
         camera.projection = rl.CameraProjection.CAMERA_PERSPECTIVE
 
         self.pole_size: float = 0.25
@@ -359,7 +372,6 @@ class CraneController:
         self.crane_starting_pos = Position(0, 0, 0)
 
         rl.disable_cursor()
-
 
         while not rl.window_should_close() and not self._engine_shutdown:
             rl.update_camera(camera, rl.CameraMode.CAMERA_THIRD_PERSON)
@@ -387,8 +399,8 @@ class CraneController:
                                                  self.crane_starting_pos.z)
                         match current_cmd[0]:
                             case 'M':
-                                i = smoothstep(current_cmd[1], 
-                                               current_cmd[2], 
+                                i = smoothstep(current_cmd[1],
+                                               current_cmd[2],
                                                time_index)
 
                                 current_pos.x += (current_cmd[3].x -
@@ -409,7 +421,6 @@ class CraneController:
 
             self._draw_crane(current_pos)
             self._draw_containers()
-
 
             rl.draw_grid(10, 1.)
 
@@ -472,7 +483,7 @@ class CraneController:
             simulation
         """
         for _ in range(end):
-            #print(f"{self.cmd_list[0][0]} @ t = {t} ms")
+            # print(f"{self.cmd_list[0][0]} @ t = {t} ms")
             match self.cmd_list[0][0]:
                 case 'M':
                     self.crane_starting_pos = self.cmd_list[0][3]

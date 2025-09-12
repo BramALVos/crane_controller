@@ -78,14 +78,14 @@ move_speed = 1
 attach_detach_speed = 1
 path = CranePath(warehouse_size, move_speed, attach_detach_speed)
 with CraneController(warehouse_size) as crane:
-    (path.move_to(Position(0,0,0))
+    (path.move_to(Position(0, 0, 0))
          .attach()
-         .move_to(Position(0,3,0))
-         .move_to(Position(1,3,0))
-         .move_to(Position(1,0,0))
+         .move_to(Position(0, 3, 0))
+         .move_to(Position(1, 3, 0))
+         .move_to(Position(1, 0, 0))
          .detach()
-         .idle(1000))              # you can keep adding commands for as long
-                                   # as you like
+         .idle(1000))  # you can keep adding commands for as long
+    # as you like
 ```
 
 The warehouse can be filled using the `fill_warehouse()` function.
@@ -105,11 +105,11 @@ with CraneController(warehouse_size) as crane:
         [3, 1, 1, 1],  # -----> x
     )
 
-    (path.move_to(Position(0,0,0))
+    (path.move_to(Position(0, 0, 0))
          .attach()
-         .move_to(Position(0,3,0))
-         .move_to(Position(1,3,0))
-         .move_to(Position(1,0,0))
+         .move_to(Position(0, 3, 0))
+         .move_to(Position(1, 3, 0))
+         .move_to(Position(1, 0, 0))
          .detach()
          .idle(1000))
 ```
@@ -130,15 +130,15 @@ with CraneController(warehouse_size) as crane:
         [3, 1, 1, 1],  # -----> x
     )
 
-    (path.move_to(Position(0,0,0))
+    (path.move_to(Position(0, 0, 0))
          .attach()
-         .move_to(Position(0,3,0))
-         .move_to(Position(1,3,0))
-         .move_to(Position(1,0,0))
+         .move_to(Position(0, 3, 0))
+         .move_to(Position(1, 3, 0))
+         .move_to(Position(1, 0, 0))
          .detach()
          .idle(1000))
 
-    crane.exec(path) # start executing the commands from path in order
+    crane.exec(path)  # start executing the commands from path in order
 ```
 
 ## Getting help
