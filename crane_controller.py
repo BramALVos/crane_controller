@@ -269,19 +269,20 @@ class CranePath:
         """
         Return the string representation of a CranePath.
         """
-        result = ""
+        result = []
         mapping: dict[str, str] = {'M': "MOVE", 'D': "DETACH",
                                    'A': "ATTACH", 'I': "IDLE"}
         for cmd in self._cmds:
-            result += f"{mapping[cmd[0]]}"
+            result.append(f"{mapping[cmd[0]]}")
 
             if cmd[0] == 'M':
-                result += f" {cmd[3]}"
-            elif cmd[0] == 'I':
-                result += f" {cmd[2] - cmd[1]}"
+                result.append(f" {cmd[3]}")
 
-            result += f" @ {cmd[1]}\n"
-        return result
+            elif cmd[0] == 'I':
+                result.append(f" {cmd[2] - cmd[1]}")
+
+            result.append(f" @ {cmd[1]}\n")
+        return "".join(result)
 
 
 class CraneController:
