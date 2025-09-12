@@ -35,41 +35,42 @@ class SmoothstepTest(unittest.TestCase):
         self.assertEqual(smoothstep(0, 1, 0.5), 0.5)
         # TODO: add more test cases!
 
+
 class CranePathTest(unittest.TestCase):
     def test_speed(self):
         with self.assertRaises(ValueError):
-            _ = CranePath(Size(1,1,1), 1001, 1)
+            _ = CranePath(Size(1, 1, 1), 1001, 1)
 
         with self.assertRaises(ValueError):
-            _ = CranePath(Size(1,1,1), 0, 1)
+            _ = CranePath(Size(1, 1, 1), 0, 1)
 
         with self.assertRaises(ValueError):
-            _ = CranePath(Size(1,1,1), 1, 1001)
+            _ = CranePath(Size(1, 1, 1), 1, 1001)
 
         with self.assertRaises(ValueError):
-            _ = CranePath(Size(1,1,1), 1, 0)
+            _ = CranePath(Size(1, 1, 1), 1, 0)
 
     def test_check_position(self):
         path = CranePath(Size(2, 2, 2), 1, 1)
         with self.assertRaises(ValueError):
-            path._check_position(Position(2,0,0))
+            path._check_position(Position(2, 0, 0))
 
         with self.assertRaises(ValueError):
-            path._check_position(Position(0,3,0))
+            path._check_position(Position(0, 3, 0))
 
         with self.assertRaises(ValueError):
-            path._check_position(Position(0,0,2))
+            path._check_position(Position(0, 0, 2))
 
         with self.assertRaises(ValueError):
-            path._check_position(Position(0,0,-1))
+            path._check_position(Position(0, 0, -1))
 
     def test_cmds(self):
         path = CranePath(Size(2, 2, 2), 1, 1)
-        path.move_to(Position(0,0,0))
+        path.move_to(Position(0, 0, 0))
         path.attach()
         path.detach()
         path.idle(1000)
-        self.assertEqual(path._cmds, [('M', 0, 1000, Position(0,0,0)),
+        self.assertEqual(path._cmds, [('M', 0, 1000, Position(0, 0, 0)),
                                       ('A', 1000, 2000),
                                       ('D', 2000, 3000),
                                       ('I', 3000, 4000)
