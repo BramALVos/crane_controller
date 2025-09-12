@@ -239,7 +239,7 @@ class CranePath:
             t_start = self._cmds[-1][2]
 
         t_end: int = t_start + duration
-        return (t_start, t_end)
+        return t_start, t_end
 
     def __repr__(self):
         """
@@ -657,7 +657,7 @@ class CraneController:
                 raise ValueError("invalid z dimension (max z = "
                                  f"{self.plane.z - 3})")
             for a in arg:
-                if a > (self.plane.y):
+                if a > self.plane.y:
                     raise ValueError("invalid y dimension (max y = "
                                      f"{self.plane.y - 1})")
             self.containers.append(arg)

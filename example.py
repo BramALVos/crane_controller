@@ -8,9 +8,6 @@ def main():
     moving_speed = 1
     attach_and_detach_speed = 1
 
-    path: CranePath = CranePath(warehouse_size, moving_speed, 
-                                attach_and_detach_speed)
-
     with CraneController(warehouse_size) as crane:
         path: CranePath = CranePath(warehouse_size, moving_speed, 
                                     attach_and_detach_speed)
