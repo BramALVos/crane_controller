@@ -20,8 +20,7 @@ def main():
             [3, 1, 1, 1],
         )
 
-        (path.move_to(Position(3, 3, 3))
-             .move_to(Position(0, 0, 0))
+        (path.move_to(Position(0, 0, 0))
              .attach()
              .move_to(Position(0, 3, 0))
              .move_to(Position(3, 3, 3))
@@ -30,6 +29,9 @@ def main():
              .move_to(Position(3, 3, 3))
              .idle(2000)
              .move_to(Position(0, 3, 0)))
+        # uncomment the line if you would like to display the 
+        # CranePath structure
+        # print(path)
 
         crane.exec(path)
 
