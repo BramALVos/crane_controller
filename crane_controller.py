@@ -634,11 +634,13 @@ class CraneController:
         Parameters:
         args (tuple[list[int]]): A tuple where each element is a list which 
                                  contains integers. The integers represent the 
-                                 height (aka how many boxes are stacked).
-                                 each element in the list is the height for a
-                                 certain x position. Each list contains the 
-                                 values for x and y where the list is a z 
-                                 position. TODO: Clarify with an example
+                                 height/y coordinate (aka how many boxes are
+                                 stacked).
+                                 For each z coordinate there should be a list,
+                                 meaning that the entries in a list represent
+                                 the x coordinate.
+                                 See the README for more information
+
         Returns:
             None
         Raises:
