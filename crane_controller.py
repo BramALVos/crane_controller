@@ -469,13 +469,11 @@ class CraneController:
 
         return (r + l) // 2
 
-    def _exec_cmd_range(self, end: int, t: int):
+    def _exec_cmd_range(self, end: int):
         """
-        Execute all the commands from the currently processed command till 
-        the command which starts at time t
+        Execute the first `end` commands in the command list
         Parameters:
             end (int): index to the last command to be executed
-            t (int): current time since exec has been called in ms
         Returns:
             None
         Effects:
@@ -484,7 +482,6 @@ class CraneController:
             simulation
         """
         for _ in range(end):
-            # print(f"{self.cmd_list[0][0]} @ t = {t} ms")
             match self.cmd_list[0][0]:
                 case 'M':
                     self.crane_starting_pos = self.cmd_list[0][3]
@@ -660,11 +657,13 @@ class CraneController:
         Parameters:
         args (tuple[list[int]]): A tuple where each element is a list which 
                                  contains integers. The integers represent the 
-                                 height (aka how many boxes are stacked).
-                                 each element in the list is the height for a
-                                 certain x position. Each list contains the 
-                                 values for x and y where the list is a z 
-                                 position. TODO: Clarify with an example
+                                 height/y coordinate (aka how many boxes are
+                                 stacked).
+                                 For each z coordinate there should be a list,
+                                 meaning that the entries in a list represent
+                                 the x coordinate.
+                                 See the README for more information
+
         Returns:
             None
         Raises:
