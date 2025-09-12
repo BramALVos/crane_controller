@@ -444,7 +444,7 @@ class CraneController:
             None
         """
         index = self._find_cmd_index(t)
-        self._exec_cmd_range(index if index > 0 else 1, t)
+        self._exec_cmd_range(index if index > 0 else 1)
 
     def _find_cmd_index(self, index: int):
         """
