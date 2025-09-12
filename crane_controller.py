@@ -49,7 +49,7 @@ class Vec3i:
     """ 
     def __init__(self, x: int, y: int, z: int):
         """
-        Initialize an Vec3i
+        Initialize a Vec3i
         Parameters:
             x (int): The x value of the vector
             y (int): The y value of the vector
@@ -63,7 +63,7 @@ class Vec3i:
 
     def __repr__(self):
         """
-        Return a string representation of an Vec3i or a child of Vec3i
+        Return a string representation of a Vec3i or a child of Vec3i
         """
         return (f"{self.__class__.__name__}"
                 f"[x: {self.x}, y: {self.y}, z: {self.z}]")
@@ -300,8 +300,8 @@ class CraneController:
         """
         This function forces the user to use CraneController with a with 
         statement (not really, but it makes it harder). This is needed since 
-        raylib (responsible for all the graphics needs to be 
-        deinitialized when the window closes.
+        raylib (responsible for all the graphics) needs to be deinitialized when
+        the window closes.
         A with statement makes sure that __exit__ will get called and __exit__ 
         will close the window respectfully
         """
@@ -634,8 +634,8 @@ class CraneController:
         Parameters:
         args (tuple[list[int]]): A tuple where each element is a list which 
                                  contains integers. The integers represent the 
-                                 hight (aka how many boxes are stacked).
-                                 each element in the list is the hight for a
+                                 height (aka how many boxes are stacked).
+                                 each element in the list is the height for a
                                  certain x position. Each list contains the 
                                  values for x and y where the list is a z 
                                  position. TODO: Clarify with an example
@@ -654,10 +654,10 @@ class CraneController:
             if type(arg) != list:
                 raise TypeError("not a list!")
             elif len(arg) > self.plane.z:
-                raise ValueError("invalid z dimention (max z = "
+                raise ValueError("invalid z dimension (max z = "
                                  f"{self.plane.z - 3})")
             for a in arg:
                 if a > (self.plane.y):
-                    raise ValueError("invalid y dimention (max y = "
+                    raise ValueError("invalid y dimension (max y = "
                                      f"{self.plane.y - 1})")
             self.containers.append(arg)
