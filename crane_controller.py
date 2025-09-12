@@ -443,13 +443,11 @@ class CraneController:
 
         return (r + l) // 2
 
-    def _exec_cmd_range(self, end: int, t: int):
+    def _exec_cmd_range(self, end: int):
         """
-        Execute all the commands from the currently processed command till 
-        the command which starts at time t
+        Execute the first `end` commands in the command list
         Parameters:
             end (int): index to the last command to be executed
-            t (int): current time since exec has been called in ms
         Returns:
             None
         Effects:
@@ -458,7 +456,6 @@ class CraneController:
             simulation
         """
         for _ in range(end):
-            #print(f"{self.cmd_list[0][0]} @ t = {t} ms")
             match self.cmd_list[0][0]:
                 case 'M':
                     self.crane_starting_pos = self.cmd_list[0][3]
