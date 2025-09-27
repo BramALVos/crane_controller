@@ -191,7 +191,7 @@ class CranePath:
             raise ValueError("x, y, or z may not be less than 0")
         if position.x >= self._warehouse_size.x:
             raise ValueError("invalid x dimension "
-                             f"(max is {self._warehouse_size.x - 2})")
+                             f"(max is {self._warehouse_size.x - 1})")
         if position.y >= self._warehouse_size.y:
             raise ValueError("invalid y dimension "
                              f"(max is {self._warehouse_size.y - 2})")
@@ -360,7 +360,7 @@ class CraneController:
             rl.set_config_flags(rl.ConfigFlags.FLAG_WINDOW_RESIZABLE)
 
         camera = rl.Camera3D()
-        camera.position = rl.Vector3(10., 10., 10.)
+        camera.position = rl.Vector3(20., 10., 0)
         camera.target = rl.Vector3(0, 0, 0)
         camera.up = rl.Vector3(0, 1., 0)
         camera.fovy = 45.0
@@ -501,8 +501,8 @@ class CraneController:
         """
         Draw the containers in the warehouse as a cube
         """
-        for iz, z in enumerate(self.containers):
-            for ix, x in enumerate(z):
+        for ix, z in enumerate(self.containers):
+            for iz, x in enumerate(z):
                 for y in range(x):
                     pos = rl.Vector3(ix + 1, y + 0.5, iz + 0.5)
                     size = rl.Vector3(1, 1, 1)
@@ -654,7 +654,7 @@ class CraneController:
         """
         Fill the warehouse with containers
         Parameters:
-        args (tuple[list[int]]): A tuple where each element is a list which 
+        args (tuple[list[int]]): A tuple where each element is a list which
                                  contains integers. The integers represent the 
                                  height/y coordinate (aka how many boxes are
                                  stacked).
@@ -669,19 +669,22 @@ class CraneController:
             A ValueError when x, y, or z is not inside the warehouse or a
             TypeError when args contains a type other than list
         """
+        # we have to do this to make sure that the internal array doesn't
+        # change before exec is called
+        args = deepcopy(args)
         self.containers.clear()
-        if len(args) > self.plane.x - 1:
+        if len(args) >= self.plane.x:
             raise ValueError("invalid x dimension (max x = "
-                             f"{self.plane.x - 2})")
+                             f"{self.plane.x - 1})")
 
         for arg in args:
             if type(arg) != list:
                 raise TypeError("not a list!")
             elif len(arg) > self.plane.z:
                 raise ValueError("invalid z dimension (max z = "
-                                 f"{self.plane.z - 3})")
+                                 f"{self.plane.z})")
             for a in arg:
-                if a > self.plane.y:
+                if a >= self.plane.y - 1:
                     raise ValueError("invalid y dimension (max y = "
-                                     f"{self.plane.y - 1})")
+                                     f"{self.plane.y - 2})")
             self.containers.append(arg)
